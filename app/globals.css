@@ -1,0 +1,291 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Modern, vibrant color scheme based on Acumant teal/blue */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Vibrant primary teal */
+    --primary: 199 84% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Rich secondary blue */
+    --secondary: 221 83% 53%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted backgrounds with slight teal tint */
+    --muted: 199 20% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent with purple tint */
+    --accent: 250 89% 76%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 346 87% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 84% 55%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark mode with rich, deep colors */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Vibrant primary teal in dark mode */
+    --primary: 199 84% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Rich secondary blue */
+    --secondary: 221 83% 53%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Deeper muted backgrounds */
+    --muted: 223 47% 20%;
+    --muted-foreground: 215 20% 75%;
+
+    /* Brighter accent for dark mode */
+    --accent: 250 89% 76%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 346 87% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 199 84% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Modern scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-md hover:border-primary/20;
+}
+
+/* Glass effect for premium components */
+.glass-effect {
+  @apply bg-white/80 dark:bg-black/50 backdrop-blur-md border border-white/20 dark:border-white/10;
+}
+
+/* Status indicators */
+.status-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-colors;
+}
+
+.status-active {
+  @apply bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400;
+}
+
+.status-inactive {
+  @apply bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-teal to-brand-blue;
+}
+
+.gradient-text-blue-purple {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-purple;
+}
+
+/* Gradient borders */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to right, #0ea5e9, #2563eb);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.gradient-border-blue-purple::before {
+  background: linear-gradient(to right, #2563eb, #8b5cf6);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+/* Shimmer effect for loading states */
+.shimmer {
+  background: linear-gradient(
+    to right,
+    rgba(14, 165, 233, 0.1) 0%,
+    rgba(14, 165, 233, 0.2) 20%,
+    rgba(14, 165, 233, 0.1) 40%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+/* Replace the custom base styles at the end of the file with these slightly larger values */
+@layer base {
+  html {
+    font-size: 15px;
+  }
+
+  h1 {
+    @apply text-2xl;
+  }
+
+  h2 {
+    @apply text-xl;
+  }
+
+  h3 {
+    @apply text-lg;
+  }
+
+  p {
+    @apply text-sm;
+  }
+
+  .text-xs {
+    font-size: 0.8125rem;
+  }
+
+  .text-sm {
+    font-size: 0.875rem;
+  }
+
+  .text-base {
+    font-size: 0.9375rem;
+  }
+
+  .text-lg {
+    font-size: 1.0625rem;
+  }
+
+  .text-xl {
+    font-size: 1.1875rem;
+  }
+
+  .text-2xl {
+    font-size: 1.4375rem;
+  }
+
+  .text-3xl {
+    font-size: 1.6875rem;
+  }
+}
+
+/* Compact UI elements */
+.card-compact {
+  @apply p-3;
+}
+
+.btn-compact {
+  @apply py-1 px-3 text-sm;
+}
+
+/* Reduce spacing */
+.space-y-compact > * + * {
+  @apply mt-2;
+}
+
+.space-x-compact > * + * {
+  @apply ml-2;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-brand-teal to-brand-blue text-white hover:shadow-glow transition-all;
+}
+
+.btn-secondary {
+  @apply bg-gradient-to-r from-brand-blue to-brand-purple text-white hover:shadow-glow-purple transition-all;
+}
+
+/* Card styles */
+.card-premium {
+  @apply border-0 shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden;
+}
+
+.card-premium-header {
+  @apply h-1.5 bg-gradient-to-r from-brand-teal to-brand-blue;
+}
+
+.card-premium-header-alt {
+  @apply h-1.5 bg-gradient-to-r from-brand-blue to-brand-purple;
+}
+
