@@ -273,7 +273,7 @@ export function EnhancedChatInterface() {
           }
         );
         setIsTyping(false);
-        console.log(response.data)
+        console.log(response.data);
 
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -365,13 +365,14 @@ export function EnhancedChatInterface() {
     return path.split("/").pop() || path;
   };
   const handleProjectSelect = (projectId: string) => {
-    const selectedProject = projects.find(project => project.ProjectId === projectId);
+    const selectedProject = projects.find(
+      (project) => project.ProjectId === projectId
+    );
     if (selectedProject) {
       setSelectedProjectName(selectedProject.ProjectName);
     }
   };
   // console.log("372", SelectedProjectName);
-
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] border rounded-md overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
@@ -588,7 +589,7 @@ export function EnhancedChatInterface() {
                         : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
                     }`}
                   >
-                    <div className="prose max-w-full text-sm whitespace-pre-wrap dark:prose-invert">
+                    <div className="prose max-w-full text-sm dark:prose-invert [&_p]:mb-4">
                       <ReactMarkdown>{message.content}</ReactMarkdown>
                     </div>
 

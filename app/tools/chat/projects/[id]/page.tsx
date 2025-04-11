@@ -8,14 +8,15 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { use } from "react"
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default function ProjectDetailPage({ params }: { params: Promise< { id: string }> }) {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   // Unwrap params using React.use() to fix the deprecation warning
-  const projectId = use(Promise.resolve(params.id))
+  const {id} = use(params)
 
   useEffect(() => {
+
     const loadData = async () => {
       try {
         const userData = await getCurrentUser()
@@ -50,8 +51,8 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     <div className="flex flex-col min-h-screen">
       <DashboardHeader user={user} />
 
-      <main className="flex-1 container py-10">
-        <ProjectView projectId={projectId} />
+      <main className="flex-1 container pasdy-10">
+        <ProjectView projectId={id} />
       </main>
     </div>
   )
