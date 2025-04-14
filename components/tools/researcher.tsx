@@ -25,6 +25,10 @@ import {
   FileText,
   FileQuestion,
   Sparkles,
+  List,
+  File,
+  FileSearch,
+  FilePlus,
   Brain,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -48,7 +52,7 @@ export function Researcher() {
   const [isLoading, setIsLoading] = useState(false);
   //   const [pageLoading, setPageLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [reportType, setReportType] = useState("brief");
+  const [reportType, setReportType] = useState("research_report");
   const [researchResult, setResearchResult] =
     useState<ResearchReportProps | null>(null);
   const [apiDuration, setApiDuration] = useState<number | null>(null);
@@ -136,12 +140,20 @@ export function Researcher() {
 
   const getReportIcon = () => {
     switch (reportType) {
-      case "brief":
+      case "research_report":
         return <FileText className="h-5 w-5" />;
       case "comprehensive":
         return <BookOpen className="h-5 w-5" />;
       case "detailed":
         return <FileQuestion className="h-5 w-5" />;
+      case "resource_report":
+        return <List className="h-5 w-5" />;
+      case "outline_report":
+        return <FilePlus className="h-5 w-5" />;
+      case "custom_report":
+        return <FileSearch className="h-5 w-5" />;
+      case "subtopic_report":
+        return <File className="h-5 w-5" />;
       default:
         return <FileText className="h-5 w-5" />;
     }
@@ -149,14 +161,22 @@ export function Researcher() {
 
   const getReportTime = () => {
     switch (reportType) {
-      case "brief":
-        return "2-3 minutes";
+      case "research_report":
+        return "Approximately 2 minutes";
       case "comprehensive":
-        return "5-7 minutes";
+        return "Approximately 5 minutes";
       case "detailed":
-        return "10+ minutes";
+        return "Approximately 10+ minutes";
+      case "resource_report":
+        return "Approximately 3 minutes";
+      case "outline_report":
+        return "Approximately 3 minutes";
+      case "custom_report":
+        return "Approximately 3 minutes";
+      case "subtopic_report":
+        return "Approximately 3 minutes";
       default:
-        return "2-3 minutes";
+        return "Approximately 3 minutes";
     }
   };
 
@@ -224,12 +244,26 @@ export function Researcher() {
                       <SelectValue placeholder="Select report type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="brief">Brief Summary</SelectItem>
-                      <SelectItem value="comprehensive">
-                        Comprehensive Report
+                      <SelectItem value="research_report">
+                        Brief Summary
                       </SelectItem>
                       <SelectItem value="detailed">
                         Detailed Analysis
+                      </SelectItem>
+                      <SelectItem value="comprehensive">
+                        Comprehensive
+                      </SelectItem>
+                      <SelectItem value="resource_report">
+                        Resource List
+                      </SelectItem>
+                      <SelectItem value="outline_report">
+                        Outline Only
+                      </SelectItem>
+                      <SelectItem value="custom_report">
+                        Custom Report
+                      </SelectItem>
+                      <SelectItem value="subtopic_report">
+                        Subtopic Focus
                       </SelectItem>
                     </SelectContent>
                   </Select>

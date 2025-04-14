@@ -56,49 +56,49 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const { toast } = useToast();
   const router = useRouter();
 
+  const fetchProject = async () => {
+    try {
+      const company_id = "Acumant";
+      const response = await api.get(
+        `/codecraft/company_id/${company_id}/projects/${projectId}/files`
+      );
+  
+      const data = response.data;
+  
+      const flattenedFiles = (data.files || []).map((file: any) => ({
+        id: file.DocumentId,
+        name: file.name,
+        size: String(file.size),
+        uploadedAt: new Date(file.CreatedOn),
+      }));
+  
+      const formattedProject: ProjectDetails = {
+        id: data.ProjectId,
+        name: data.ProjectName,
+        description: data.Description,
+        documentSource: data.DocumentSource,
+        createdAt: new Date(flattenedFiles?.[0]?.uploadedAt || new Date()),
+        files: flattenedFiles,
+      };
+  
+      setProject(formattedProject);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load project details. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        const company_id = "Acumant";
-        const response = await api.get(
-          `/codecraft/company_id/${company_id}/projects/${projectId}/files`
-        );
-
-        const data = response.data;
-        console.log(data)
-
-        const flattenedFiles = (data.files || []).map((file: any) => ({
-          id: file.DocumentId,
-          name: file.name,
-          size: String(file.size), 
-          uploadedAt: new Date(file.CreatedOn),
-        }));
-    
-        const formattedProject: ProjectDetails = {
-          id: data.ProjectId,
-          name: data.ProjectName,
-          description: data.Description,
-          documentSource: data.DocumentSource,
-          createdAt: new Date(flattenedFiles?.[0]?.uploadedAt || new Date()),
-          files: flattenedFiles,
-        };
-    
-        setProject(formattedProject);
-      } catch (error) {
-        console.error("Error fetching project:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load project details. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProject();
-  }, [projectId, toast]);
-
+  }, [projectId]);
+  
+  
   const handleFilesChange = async (files: UploadedFile[]) => {
     if (!files.length) return;
 
@@ -140,19 +140,19 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   };
 
   const handleDeleteFile = async () => {
-    if (!fileToDelete) return;
+    if (!fileToDelete || !project) return;
 
     try {
-      // In a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      const company_Id = "Acumant";
+      const [docName, docId] = fileToDelete.split(":::");
+      const encodedProjectName = encodeURIComponent(project.name);
 
-      setProject((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          files: prev.files.filter((file) => file.id !== fileToDelete),
-        };
-      });
+      await api.delete(
+        `/codecraft/company_id/${company_Id}/project/${encodedProjectName}/file/${docName}/${docId}`
+      );
+
+      await fetchProject();
 
       toast({
         title: "File deleted",
@@ -166,6 +166,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       });
     } finally {
       setFileToDelete(null);
+      
     }
   };
 
@@ -307,7 +308,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => setFileToDelete(file.id)}
+                            onClick={() => setFileToDelete(`${file.name}:::${file.id}`)}
+
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
@@ -333,6 +335,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
               file from the project.
+
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

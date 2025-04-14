@@ -110,33 +110,32 @@ export function ProjectsList() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const fetchProjects = async () => {
+    try {
+      const company_id = "Acumant";
+      const response = await api.get(`/codecraft/get-projects-by-company_id`, {
+        params: { company_id: company_id },
+      });
+  
+      // console.log("Projects fetched:", response.data.results);
+      setProjects(response.data.results);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load projects. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const company_id = "Acumant";
-        const response = await api.get(
-          `/codecraft/get-projects-by-company_id`,
-          {
-            params: { company_id: company_id },
-          }
-        );
-
-        console.log("Projects fetched:", response.data.results);
-        setProjects(response.data.results);
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load projects. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProjects();
-  }, [toast]);
+  }, []);
+  
+  
 
   const handleCreateProject = () => {
     router.push("/tools/chat/projects/create");
@@ -150,17 +149,18 @@ export function ProjectsList() {
     if (!projectToDelete) return;
 
     try {
-      // In a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setProjects((prev) =>
-        prev.filter((project) => project.ProjectId !== projectToDelete)
-      );
+      const company_id = "Acumant";
+      const [projectName, projectId] = projectToDelete.split(":::");
+      const encodedProjectName = encodeURIComponent(projectName);
+      await api.delete(`/codecraft/company_id/${company_id}/delete-project/${encodedProjectName}/${projectId}`)
 
       toast({
         title: "Project deleted",
         description: "The project has been deleted successfully",
       });
+
+      await fetchProjects();
+
     } catch (error) {
       toast({
         title: "Error",
@@ -251,7 +251,7 @@ export function ProjectsList() {
                           View
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => setProjectToDelete(project.ProjectId)}
+                          onClick={() => setProjectToDelete(`${project.ProjectName}:::${project.ProjectId}`)}
                           className="cursor-pointer hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
