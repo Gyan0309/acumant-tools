@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import React from "react"
-import Image from "next/image"
-import { usePathname, useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import React from "react";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   BarChart3,
   MessageSquare,
@@ -20,66 +20,74 @@ import {
   ChevronRight,
   ToggleLeft,
   CreditCard,
-} from "lucide-react"
-import { useEffect, useState } from "react"
-import { getUserTools, getCurrentUser, isSuperAdmin, isAdmin } from "@/lib/data"
-import { useSidebar } from "./sidebar-provider"
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAllTools, isSuperAdmin, isAdmin } from "@/lib/data";
+import { useSidebar } from "./sidebar-provider";
+import { useSession } from "next-auth/react";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function Sidebar({ className }: SidebarProps) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [tools, setTools] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const { isOpen, toggle, isMobile } = useSidebar()
+  const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [tools, setTools] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isOpen, toggle, isMobile } = useSidebar();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    let isMounted = true
+    let isMounted = true;
 
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!isMounted) return
-        setUser(userData)
+        if (status === "loading") return;
+        const userData = session?.user;
+        if (!isMounted || !userData) return;
+        setUser(userData);
 
-        if (userData) {
-          const userTools = await getUserTools(userData.id)
-          if (!isMounted) return
-          setTools(userTools)
-        }
+        const userTools = await getAllTools();
+        if (!isMounted) return;
+        setTools(userTools);
       } catch (error) {
-        console.error("Failed to load user data:", error)
+        console.error("Failed to load user data:", error);
       } finally {
-        if (!isMounted) return
-        setIsLoading(false)
+        if (!isMounted) return;
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
+    loadData();
 
     return () => {
-      isMounted = false
-    }
-  }, [])
+      isMounted = false;
+    };
+  }, [session, status]);
 
   // Skip rendering sidebar on login page
   if (pathname === "/login") {
-    return null
+    return null;
   }
 
   const toolIcons: Record<string, React.ReactNode> = {
     chat: <MessageSquare className="h-[18px] w-[18px]" />,
     "data-formulator": <Database className="h-[18px] w-[18px]" />,
     "deep-research": <Search className="h-[18px] w-[18px]" />,
-  }
+  };
 
-  const userIsSuperAdmin = user ? isSuperAdmin(user) : false
-  const userIsAdmin = user ? isAdmin(user) : false
+  const userIsSuperAdmin = user ? isSuperAdmin(user) : false;
+  const userIsAdmin = user ? isAdmin(user) : false;
 
   if (isLoading) {
-    return <div className={cn("w-[240px] border-r animate-pulse bg-muted", !isOpen && "w-[60px]")} />
+    return (
+      <div
+        className={cn(
+          "w-[240px] border-r animate-pulse bg-muted",
+          !isOpen && "w-[60px]"
+        )}
+      />
+    );
   }
 
   // Mobile toggle button when sidebar is closed
@@ -93,7 +101,7 @@ export function Sidebar({ className }: SidebarProps) {
       >
         <Menu className="h-4 w-4" />
       </Button>
-    )
+    );
   }
 
   const sidebarItemClass = (active: boolean) =>
@@ -102,25 +110,31 @@ export function Sidebar({ className }: SidebarProps) {
       active
         ? "bg-primary/10 text-primary font-medium"
         : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
-      !isOpen && "justify-center px-0",
-    )
+      !isOpen && "justify-center px-0"
+    );
 
   const sidebarIconClass = (active: boolean) =>
-    cn("h-[18px] w-[18px] flex-shrink-0", active ? "text-primary" : "text-muted-foreground")
+    cn(
+      "h-[18px] w-[18px] flex-shrink-0",
+      active ? "text-primary" : "text-muted-foreground"
+    );
 
   // Custom navigation handler to prevent scrolling
-  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault()
+  const handleNavigation = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    e.preventDefault();
 
     // Only navigate if we're going to a different page
     if (pathname !== href) {
       // Save current scroll position
       if (typeof sessionStorage !== "undefined") {
-        const currentPosition = window.scrollY
-        sessionStorage.setItem("scrollPosition", currentPosition.toString())
+        const currentPosition = window.scrollY;
+        sessionStorage.setItem("scrollPosition", currentPosition.toString());
 
         // Use router.push with scroll=false option for all pages
-        router.push(href, { scroll: false })
+        router.push(href, { scroll: false });
 
         // For problematic pages, add an additional scroll restoration
         if (
@@ -130,17 +144,17 @@ export function Sidebar({ className }: SidebarProps) {
         ) {
           // Use a sequence of timers to ensure scroll is maintained
           setTimeout(() => {
-            window.scrollTo(0, currentPosition)
+            window.scrollTo(0, currentPosition);
 
             // Add a backup timer
             setTimeout(() => {
-              window.scrollTo(0, currentPosition)
-            }, 50)
-          }, 0)
+              window.scrollTo(0, currentPosition);
+            }, 50);
+          }, 0);
         }
       }
     }
-  }
+  };
 
   return (
     <div
@@ -149,7 +163,7 @@ export function Sidebar({ className }: SidebarProps) {
         isOpen ? "w-[220px]" : "w-[56px]",
         isMobile && !isOpen && "hidden",
         isMobile && isOpen && "fixed inset-y-0 left-0 z-50 shadow-xl",
-        className,
+        className
       )}
     >
       {/* Logo section */}
@@ -190,10 +204,14 @@ export function Sidebar({ className }: SidebarProps) {
         onClick={toggle}
         className={cn(
           "absolute -right-3 top-3 h-6 w-6 rounded-full bg-white dark:bg-gray-800 border border-brand-teal/20 shadow-sm z-10",
-          "flex items-center justify-center p-0",
+          "flex items-center justify-center p-0"
         )}
       >
-        {isOpen ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        {isOpen ? (
+          <ChevronLeft className="h-3 w-3" />
+        ) : (
+          <ChevronRight className="h-3 w-3" />
+        )}
       </Button>
 
       <ScrollArea className="flex-1 py-1">
@@ -201,7 +219,9 @@ export function Sidebar({ className }: SidebarProps) {
           <div>
             {isOpen && (
               <div className="px-2 mb-1">
-                <p className="text-[11px] font-medium text-muted-foreground">DASHBOARD</p>
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  DASHBOARD
+                </p>
               </div>
             )}
             <a
@@ -209,7 +229,9 @@ export function Sidebar({ className }: SidebarProps) {
               className={sidebarItemClass(pathname === "/dashboard")}
               onClick={(e) => handleNavigation(e, "/dashboard")}
             >
-              <BarChart3 className={sidebarIconClass(pathname === "/dashboard")} />
+              <BarChart3
+                className={sidebarIconClass(pathname === "/dashboard")}
+              />
               {isOpen && <span className="text-[13px]">Overview</span>}
             </a>
           </div>
@@ -219,15 +241,26 @@ export function Sidebar({ className }: SidebarProps) {
               <a
                 key={tool.id}
                 href={`/tools/${tool.slug}`}
-                className={sidebarItemClass(pathname.includes(`/tools/${tool.slug}`))}
+                className={sidebarItemClass(
+                  pathname.includes(`/tools/${tool.slug}`)
+                )}
                 onClick={(e) => handleNavigation(e, `/tools/${tool.slug}`)}
               >
                 {toolIcons[tool.slug] ? (
-                  React.cloneElement(toolIcons[tool.slug] as React.ReactElement, {
-                    className: sidebarIconClass(pathname.includes(`/tools/${tool.slug}`)),
-                  })
+                  React.cloneElement(
+                    toolIcons[tool.slug] as React.ReactElement,
+                    {
+                      className: sidebarIconClass(
+                        pathname.includes(`/tools/${tool.slug}`)
+                      ),
+                    }
+                  )
                 ) : (
-                  <Package className={sidebarIconClass(pathname.includes(`/tools/${tool.slug}`))} />
+                  <Package
+                    className={sidebarIconClass(
+                      pathname.includes(`/tools/${tool.slug}`)
+                    )}
+                  />
                 )}
                 {isOpen && <span className="text-[13px]">{tool.name}</span>}
               </a>
@@ -250,7 +283,9 @@ export function Sidebar({ className }: SidebarProps) {
                 className={sidebarItemClass(pathname === "/tools-management")}
                 onClick={(e) => handleNavigation(e, "/tools-management")}
               >
-                <ToggleLeft className={sidebarIconClass(pathname === "/tools-management")} />
+                <ToggleLeft
+                  className={sidebarIconClass(pathname === "/tools-management")}
+                />
                 {isOpen && <span className="text-[13px]">Tools</span>}
               </a>
 
@@ -258,11 +293,21 @@ export function Sidebar({ className }: SidebarProps) {
                 <>
                   <a
                     href="/subscription-management"
-                    className={sidebarItemClass(pathname === "/subscription-management")}
-                    onClick={(e) => handleNavigation(e, "/subscription-management")}
+                    className={sidebarItemClass(
+                      pathname === "/subscription-management"
+                    )}
+                    onClick={(e) =>
+                      handleNavigation(e, "/subscription-management")
+                    }
                   >
-                    <CreditCard className={sidebarIconClass(pathname === "/subscription-management")} />
-                    {isOpen && <span className="text-[13px]">Subscriptions</span>}
+                    <CreditCard
+                      className={sidebarIconClass(
+                        pathname === "/subscription-management"
+                      )}
+                    />
+                    {isOpen && (
+                      <span className="text-[13px]">Subscriptions</span>
+                    )}
                   </a>
 
                   <a
@@ -270,8 +315,14 @@ export function Sidebar({ className }: SidebarProps) {
                     className={sidebarItemClass(pathname === "/organizations")}
                     onClick={(e) => handleNavigation(e, "/organizations")}
                   >
-                    <Building className={sidebarIconClass(pathname === "/organizations")} />
-                    {isOpen && <span className="text-[13px]">Organizations</span>}
+                    <Building
+                      className={sidebarIconClass(
+                        pathname === "/organizations"
+                      )}
+                    />
+                    {isOpen && (
+                      <span className="text-[13px]">Organizations</span>
+                    )}
                   </a>
                 </>
               )}
@@ -281,7 +332,9 @@ export function Sidebar({ className }: SidebarProps) {
                 className={sidebarItemClass(pathname === "/settings")}
                 onClick={(e) => handleNavigation(e, "/settings")}
               >
-                <Settings className={sidebarIconClass(pathname === "/settings")} />
+                <Settings
+                  className={sidebarIconClass(pathname === "/settings")}
+                />
                 {isOpen && <span className="text-[13px]">Settings</span>}
               </a>
             </div>
@@ -289,6 +342,5 @@ export function Sidebar({ className }: SidebarProps) {
         </nav>
       </ScrollArea>
     </div>
-  )
+  );
 }
-

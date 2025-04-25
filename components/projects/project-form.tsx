@@ -19,7 +19,7 @@ import { FileUploader } from "@/components/projects/file-uploader";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { FileIcon, Loader2 } from "lucide-react";
-import { getCurrentUser } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 import api from "@/lib/api";
 interface ProjectFormProps {
   onCancel?: () => void;
@@ -34,7 +34,6 @@ export interface UploadedFile {
 
 export function ProjectForm({ onCancel }: ProjectFormProps) {
   const [step, setStep] = useState<1 | 2>(1);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectData, setProjectData] = useState({
     name: "",
@@ -44,6 +43,7 @@ export function ProjectForm({ onCancel }: ProjectFormProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Add helpful suggestions for document sources
   const documentSources = [
@@ -90,7 +90,7 @@ export function ProjectForm({ onCancel }: ProjectFormProps) {
       });
       return;
     }
-  
+
     if (files.length === 0) {
       toast({
         title: "Files required",
@@ -99,11 +99,11 @@ export function ProjectForm({ onCancel }: ProjectFormProps) {
       });
       return;
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
-      const company_id = "Acumant"
+      const company_id = "Acumant";
       const formData = new FormData();
       formData.append("company_id", company_id);
       formData.append("ProjectName", projectData.name);
@@ -111,28 +111,31 @@ export function ProjectForm({ onCancel }: ProjectFormProps) {
       formData.append("Description", projectData.description);
       formData.append("Tags", "xyz");
       formData.append("IsActive", String(true));
-      formData.append("CreatedBy", "Admin");
-  
+      formData.append("CreatedBy", session?.user?.role);
+
       files.forEach((uploadedFile) => {
         formData.append("files", uploadedFile.file);
       });
-  
-      const response = await api.post("/codecraft/create-project", formData);
-  
-      const data = response.data;
-      console.log(data)
 
-      const train = await api.post("/codecraft/pinecone/train-pinecone-from-blob-storage-for-project",{
-        company_id: company_id,
-        project_name: projectData.name,
-      })
-      console.log(train.data)
-  
+      const response = await api.post("/codecraft/create-project", formData);
+
+      const data = response.data;
+      console.log(data);
+
+      const train = await api.post(
+        "/codecraft/pinecone/train-pinecone-from-blob-storage-for-project",
+        {
+          company_id: company_id,
+          project_name: projectData.name,
+        }
+      );
+      console.log(train.data);
+
       toast({
         title: "Project created",
         description: `Your project has been created successfully. ${data["No. of files uploaded"]} files uploaded.`,
       });
-  
+
       router.push("/tools/chat/projects");
     } catch (error: any) {
       console.error("Submission Error:", error);
@@ -145,7 +148,6 @@ export function ProjectForm({ onCancel }: ProjectFormProps) {
       setIsSubmitting(false);
     }
   };
-  
 
   return (
     <div className="max-w-5xl mx-auto">

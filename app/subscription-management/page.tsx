@@ -1,16 +1,39 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { getCurrentUser, isSuperAdmin, getOrganizations, getAllTools } from "@/lib/data"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { useRouter } from "next/navigation"
-import { Building, Loader2, Plus, Package, Users, CreditCard, Edit, Trash2 } from "lucide-react"
-import Image from "next/image"
-import { useToast } from "@/hooks/use-toast"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { isSuperAdmin, getOrganizations, getAllTools } from "@/lib/data";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useRouter } from "next/navigation";
+import {
+  Building,
+  Loader2,
+  Plus,
+  Package,
+  Users,
+  CreditCard,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useSession, signIn } from "next-auth/react";
 
 // Mock subscription plans data
 const mockSubscriptionPlans = [
@@ -54,60 +77,62 @@ const mockSubscriptionPlans = [
     tools: ["1", "3"],
     type: "custom",
   },
-]
+];
 
 export default function SubscriptionManagementPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [user, setUser] = useState<any>(null)
-  const [organizations, setOrganizations] = useState<any[]>([])
-  const [tools, setTools] = useState<any[]>([])
-  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<string>("plans")
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [tools, setTools] = useState<any[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("plans");
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
         // Only super admins can access this page
-        if (!isSuperAdmin(userData)) {
-          router.push("/dashboard")
-          return
+        if (!isSuperAdmin(session?.user)) {
+          router.push("/dashboard");
+          return;
         }
 
-        setUser(userData)
+        setUser(session?.user);
 
-        const orgsData = await getOrganizations()
-        setOrganizations(orgsData)
+        const orgsData = await getOrganizations();
+        setOrganizations(orgsData);
 
-        const toolsData = await getAllTools()
-        setTools(toolsData)
+        const toolsData = await getAllTools();
+        setTools(toolsData);
 
         // In a real app, you would fetch subscription plans from the database
-        setSubscriptionPlans(mockSubscriptionPlans)
+        setSubscriptionPlans(mockSubscriptionPlans);
       } catch (error) {
-        console.error("Failed to load data:", error)
+        console.error("Failed to load data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [router])
+    loadData();
+  }, [session, status]);
 
   const handleCreatePlan = () => {
-    router.push("/subscription-management/create")
-  }
+    router.push("/subscription-management/create");
+  };
 
   const handleEditPlan = (planId: string) => {
-    router.push(`/subscription-management/edit/${planId}`)
-  }
+    router.push(`/subscription-management/edit/${planId}`);
+  };
 
   const handleDeletePlan = (planId: string) => {
     // In a real app, you would show a confirmation dialog and delete the plan
@@ -115,12 +140,12 @@ export default function SubscriptionManagementPage() {
       title: "Delete Plan",
       description: `Deleting plan ${planId} (not implemented)`,
       variant: "destructive",
-    })
-  }
+    });
+  };
 
   const handleManageOrganization = (orgId: string) => {
-    router.push(`/subscription-management/${orgId}`)
-  }
+    router.push(`/subscription-management/${orgId}`);
+  };
 
   if (isLoading) {
     return (
@@ -130,7 +155,7 @@ export default function SubscriptionManagementPage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -143,7 +168,9 @@ export default function SubscriptionManagementPage() {
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-teal to-brand-blue">
               Subscription Management
             </h1>
-            <p className="text-muted-foreground mt-1">Manage subscription plans and organization access</p>
+            <p className="text-muted-foreground mt-1">
+              Manage subscription plans and organization access
+            </p>
           </div>
 
           <Button
@@ -185,7 +212,9 @@ export default function SubscriptionManagementPage() {
                 <Package className="h-5 w-5 text-brand-teal" />
                 Subscription Plans
               </CardTitle>
-              <CardDescription>Manage available subscription plans</CardDescription>
+              <CardDescription>
+                Manage available subscription plans
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -205,11 +234,15 @@ export default function SubscriptionManagementPage() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{plan.name}</div>
-                          <div className="text-sm text-muted-foreground">{plan.description}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {plan.description}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>${plan.price}</TableCell>
-                      <TableCell className="capitalize">{plan.billingCycle}</TableCell>
+                      <TableCell className="capitalize">
+                        {plan.billingCycle}
+                      </TableCell>
                       <TableCell>{plan.tools.length} tools</TableCell>
                       <TableCell>
                         <Badge variant={plan.isActive ? "success" : "outline"}>
@@ -251,12 +284,17 @@ export default function SubscriptionManagementPage() {
                 <Building className="h-5 w-5 text-brand-teal" />
                 Organizations
               </CardTitle>
-              <CardDescription>Manage organization subscriptions</CardDescription>
+              <CardDescription>
+                Manage organization subscriptions
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {organizations.map((org) => (
-                  <div key={org.id} className="border rounded-lg p-4 hover:border-brand-teal/30 transition-colors">
+                  <div
+                    key={org.id}
+                    className="border rounded-lg p-4 hover:border-brand-teal/30 transition-colors"
+                  >
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-12 w-12 relative border rounded-md bg-gray-50 dark:bg-gray-900 flex items-center justify-center overflow-hidden">
                         {org.logo ? (
@@ -273,7 +311,12 @@ export default function SubscriptionManagementPage() {
                       </div>
                       <div>
                         <h3 className="font-medium">{org.name}</h3>
-                        <Badge variant={org.status === "active" ? "success" : "outline"} className="mt-1">
+                        <Badge
+                          variant={
+                            org.status === "active" ? "success" : "outline"
+                          }
+                          className="mt-1"
+                        >
                           {org.status}
                         </Badge>
                       </div>
@@ -281,14 +324,22 @@ export default function SubscriptionManagementPage() {
 
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Subscription:</span>
-                        <span className="font-medium capitalize">{org.subscription}</span>
+                        <span className="text-muted-foreground">
+                          Subscription:
+                        </span>
+                        <span className="font-medium capitalize">
+                          {org.subscription}
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Users:</span>
                         <span className="font-medium">
                           <Users className="h-3.5 w-3.5 inline mr-1" />
-                          {org.id === "acumant" ? "5" : org.id === "customer1" ? "3" : "2"}
+                          {org.id === "acumant"
+                            ? "5"
+                            : org.id === "customer1"
+                            ? "3"
+                            : "2"}
                         </span>
                       </div>
                     </div>
@@ -310,6 +361,5 @@ export default function SubscriptionManagementPage() {
         )}
       </main>
     </div>
-  )
+  );
 }
-

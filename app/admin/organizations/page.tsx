@@ -15,7 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { OrganizationForm } from "@/components/admin/organization-form";
-import { getOrganizations, getCurrentUser, isSuperAdmin } from "@/lib/data";
+import { getOrganizations, isSuperAdmin } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 import { Plus } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { redirect } from "next/navigation";

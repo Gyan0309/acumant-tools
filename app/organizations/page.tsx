@@ -1,23 +1,37 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { OrganizationForm } from "@/components/admin/organization-form"
-import { getOrganizations, getCurrentUser, isSuperAdmin } from "@/lib/data"
-import { Plus } from "lucide-react"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { redirect } from "next/navigation"
-import { Badge } from "@/components/ui/badge"
-import Image from "next/image"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { OrganizationForm } from "@/components/admin/organization-form";
+import { getOrganizations, isSuperAdmin } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
+import { Plus } from "lucide-react";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 export default async function OrganizationsPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   // Only super admins can access this page
   if (!user || !isSuperAdmin(user)) {
-    redirect("/dashboard")
+    redirect("/dashboard");
   }
 
-  const organizations = await getOrganizations()
+  const organizations = await getOrganizations();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -26,8 +40,10 @@ export default async function OrganizationsPage() {
       <main className="flex-1 container py-10">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold">Organization Management</h1>
-            <p className="text-muted-foreground mt-1">Manage customer organizations and subscriptions</p>
+            <h1 className="text-3xl font-bold  ">Organization Management</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage customer organizations and subscriptions
+            </p>
           </div>
           <OrganizationForm>
             <Button>
@@ -40,7 +56,9 @@ export default async function OrganizationsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Organizations</CardTitle>
-            <CardDescription>Manage customer organizations and their subscriptions</CardDescription>
+            <CardDescription>
+              Manage customer organizations and their subscriptions
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -67,7 +85,9 @@ export default async function OrganizationsPage() {
                             className="object-contain"
                           />
                         ) : (
-                          <span className="text-xs text-muted-foreground">No logo</span>
+                          <span className="text-xs text-muted-foreground">
+                            No logo
+                          </span>
                         )}
                       </div>
                     </TableCell>
@@ -79,7 +99,9 @@ export default async function OrganizationsPage() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="capitalize">{org.subscription}</TableCell>
+                    <TableCell className="capitalize">
+                      {org.subscription}
+                    </TableCell>
                     <TableCell>
                       <div
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -106,6 +128,5 @@ export default async function OrganizationsPage() {
         </Card>
       </main>
     </div>
-  )
+  );
 }
-

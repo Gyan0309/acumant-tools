@@ -1,60 +1,61 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { getCurrentUser } from "@/lib/auth"
-import { useRouter } from "next/navigation"
-// import { EmbeddedGPTResearch } from "@/components/tools/embedded-gpt-research"
-import { Researcher } from "@/components/tools/researcher"
+import { useState, useEffect } from "react";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useRouter } from "next/navigation";
+import { Researcher } from "@/components/tools/researcher";
+import { useSession, signIn } from "next-auth/react";
 
 export default function DeepResearchPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
-        setUser(userData)
+        setUser(session?.user);
       } catch (error) {
-        console.error("Failed to load user data:", error)
+        console.error("Failed to load user data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
+    loadData();
 
     // Create a custom event for this specific page
-    const preserveScrollEvent = new CustomEvent("preserveScroll:deepResearch")
-    document.dispatchEvent(preserveScrollEvent)
+    const preserveScrollEvent = new CustomEvent("preserveScroll:deepResearch");
+    document.dispatchEvent(preserveScrollEvent);
 
     // Prevent scroll to top on navigation using multiple techniques
-    const scrollPosition = sessionStorage.getItem("scrollPosition")
+    const scrollPosition = sessionStorage.getItem("scrollPosition");
     if (scrollPosition) {
       // Use requestAnimationFrame for smoother scroll restoration
       requestAnimationFrame(() => {
-        window.scrollTo(0, Number.parseInt(scrollPosition, 10))
+        window.scrollTo(0, Number.parseInt(scrollPosition, 10));
 
         // Add a backup in case the first attempt fails
         requestAnimationFrame(() => {
-          window.scrollTo(0, Number.parseInt(scrollPosition, 10))
-        })
-      })
+          window.scrollTo(0, Number.parseInt(scrollPosition, 10));
+        });
+      });
     }
 
     // Return cleanup function
     return () => {
       // Save position when leaving the page
-      sessionStorage.setItem("scrollPosition", window.scrollY.toString())
-    }
-  }, [router])
+      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
+    };
+  }, [session, status]);
 
   if (isLoading || !user) {
     return (
@@ -64,7 +65,7 @@ export default function DeepResearchPage() {
           <div className="h-4 w-48 bg-muted rounded"></div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -73,9 +74,7 @@ export default function DeepResearchPage() {
       <main className="flex-1 p-0">
         {/* <EmbeddedGPTResearch /> */}
         <Researcher />
-
       </main>
     </div>
-  )
+  );
 }
-

@@ -2,25 +2,27 @@
 
 import { useState, useEffect } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { getCurrentUser } from "@/lib/auth"
 import { useRouter } from "next/navigation"
 import { GeneralSettingsManager } from "@/components/settings/general-settings-manager"
+import {useSession, signIn} from "next-auth/react"
 
 export default function GeneralSettingsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { data: session, status } = useSession()
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
+        if (status === "loading") return
+
+        if (status === "unauthenticated") {
+          signIn()
           return
         }
 
-        setUser(userData)
+        setUser(session?.user)
       } catch (error) {
         console.error("Failed to load user data:", error)
       } finally {
@@ -29,7 +31,7 @@ export default function GeneralSettingsPage() {
     }
 
     loadData()
-  }, [router])
+  }, [session, status])
 
   if (isLoading || !user) {
     return (

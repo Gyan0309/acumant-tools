@@ -1,23 +1,37 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Switch } from "@/components/ui/switch"
-import { ToolForm } from "@/components/admin/tool-form"
-import { getAllTools, getCurrentUser, isSuperAdmin } from "@/lib/data"
-import { Plus } from "lucide-react"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { redirect } from "next/navigation"
-import { OrganizationToolAccess } from "@/components/admin/organization-tool-access"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
+import { ToolForm } from "@/components/admin/tool-form";
+import { getAllTools, isSuperAdmin } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
+import { Plus } from "lucide-react";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { redirect } from "next/navigation";
+import { OrganizationToolAccess } from "@/components/admin/organization-tool-access";
 
 export default async function ToolsPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   // Only super admins can access this page
   if (!user || !isSuperAdmin(user)) {
-    redirect("/")
+    redirect("/");
   }
 
-  const tools = await getAllTools()
+  const tools = await getAllTools();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -27,7 +41,9 @@ export default async function ToolsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Tool Management</h1>
-            <p className="text-muted-foreground mt-1">Manage tools and customer access</p>
+            <p className="text-muted-foreground mt-1">
+              Manage tools and customer access
+            </p>
           </div>
           <ToolForm>
             <Button>
@@ -40,7 +56,9 @@ export default async function ToolsPage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Available Tools</CardTitle>
-            <CardDescription>Enable or disable tools globally and manage their configurations</CardDescription>
+            <CardDescription>
+              Enable or disable tools globally and manage their configurations
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -56,7 +74,9 @@ export default async function ToolsPage() {
                 {tools.map((tool) => (
                   <TableRow key={tool.id}>
                     <TableCell className="font-medium">{tool.name}</TableCell>
-                    <TableCell className="max-w-md truncate">{tool.description}</TableCell>
+                    <TableCell className="max-w-md truncate">
+                      {tool.description}
+                    </TableCell>
                     <TableCell>
                       <Switch checked={tool.isActive} />
                     </TableCell>
@@ -77,6 +97,5 @@ export default async function ToolsPage() {
         <OrganizationToolAccess />
       </main>
     </div>
-  )
+  );
 }
-

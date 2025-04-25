@@ -18,9 +18,9 @@ export function Footer({ className, variant = "default", ...props }: FooterProps
       {...props}
     >
       <div className="container flex flex-col items-center justify-center gap-1 text-center">
-        <p className="text-sm text-muted-foreground">&copy; {currentYear} Acumant. All rights reserved.</p>
+        <p className="text-sm text-muted-foreground">&copy; {currentYear} BetaHub AI. All rights reserved.</p>
         <p className="text-xs text-muted-foreground">
-          Powered by <span className="font-medium text-primary">Acumant</span> Enterprise AI Platform
+          Powered by <span className="font-medium text-primary"> <a href="https://betahub.ai/">BetaHub AI</a></span> Enterprise AI Platform
         </p>
       </div>
     </footer>

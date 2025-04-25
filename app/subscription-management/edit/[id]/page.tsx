@@ -1,19 +1,40 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getCurrentUser, isSuperAdmin, getAllTools } from "@/lib/data"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { useRouter, useParams } from "next/navigation"
-import { ArrowLeft, Loader2, Save, Package, DollarSign, Calendar } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { isSuperAdmin, getAllTools } from "@/lib/data";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useRouter, useParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Loader2,
+  Save,
+  Package,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { useSession, signIn } from "next-auth/react";
 
 // Mock subscription plans data - in a real app, this would come from your database
 const mockSubscriptionPlans = [
@@ -57,86 +78,93 @@ const mockSubscriptionPlans = [
     tools: ["1", "3"],
     type: "custom",
   },
-]
+];
 
 export default function EditSubscriptionPlanPage() {
-  const router = useRouter()
-  const params = useParams()
-  const { toast } = useToast()
-  const [user, setUser] = useState<any>(null)
-  const [tools, setTools] = useState<any[]>([])
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter();
+  const params = useParams();
+  const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  const [tools, setTools] = useState<any[]>([]);
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form state
-  const [planName, setPlanName] = useState("")
-  const [planDescription, setPlanDescription] = useState("")
-  const [planType, setPlanType] = useState("standard")
-  const [planPrice, setPlanPrice] = useState("")
-  const [billingCycle, setBillingCycle] = useState("monthly")
-  const [isActive, setIsActive] = useState(true)
+  const [planName, setPlanName] = useState("");
+  const [planDescription, setPlanDescription] = useState("");
+  const [planType, setPlanType] = useState("standard");
+  const [planPrice, setPlanPrice] = useState("");
+  const [billingCycle, setBillingCycle] = useState("monthly");
+  const [isActive, setIsActive] = useState(true);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
         // Only super admins can access this page
-        if (!isSuperAdmin(userData)) {
-          router.push("/dashboard")
-          return
+        if (!isSuperAdmin(session?.user)) {
+          router.push("/dashboard");
+          return;
         }
 
-        setUser(userData)
+        setUser(session?.user);
 
-        const toolsData = await getAllTools()
-        setTools(toolsData)
+        const toolsData = await getAllTools();
+        setTools(toolsData);
 
         // Load plan data
-        const planId = params.id as string
-        const plan = mockSubscriptionPlans.find((p) => p.id === planId)
+        const planId = params.id as string;
+        const plan = mockSubscriptionPlans.find((p) => p.id === planId);
 
         if (!plan) {
           toast({
             title: "Plan not found",
-            description: "The subscription plan you're trying to edit doesn't exist.",
+            description:
+              "The subscription plan you're trying to edit doesn't exist.",
             variant: "destructive",
-          })
-          router.push("/subscription-management")
-          return
+          });
+          router.push("/subscription-management");
+          return;
         }
 
         // Populate form with plan data
-        setPlanName(plan.name)
-        setPlanDescription(plan.description)
-        setPlanType(plan.type)
-        setPlanPrice(plan.price.toString())
-        setBillingCycle(plan.billingCycle)
-        setIsActive(plan.isActive)
-        setSelectedTools(plan.tools)
+        setPlanName(plan.name);
+        setPlanDescription(plan.description);
+        setPlanType(plan.type);
+        setPlanPrice(plan.price.toString());
+        setBillingCycle(plan.billingCycle);
+        setIsActive(plan.isActive);
+        setSelectedTools(plan.tools);
       } catch (error) {
-        console.error("Failed to load data:", error)
+        console.error("Failed to load data:", error);
         toast({
           title: "Error",
           description: "Failed to load subscription plan data.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [router, params.id, toast])
+    loadData();
+  }, [session, status, params.id, toast]);
 
   const handleToolToggle = (toolId: string) => {
-    setSelectedTools((prev) => (prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]))
-  }
+    setSelectedTools((prev) =>
+      prev.includes(toolId)
+        ? prev.filter((id) => id !== toolId)
+        : [...prev, toolId]
+    );
+  };
 
   const handleSave = async () => {
     if (!planName.trim()) {
@@ -144,8 +172,8 @@ export default function EditSubscriptionPlanPage() {
         title: "Missing information",
         description: "Please provide a plan name.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (!planPrice || isNaN(Number(planPrice)) || Number(planPrice) <= 0) {
@@ -153,8 +181,8 @@ export default function EditSubscriptionPlanPage() {
         title: "Invalid price",
         description: "Please provide a valid price greater than 0.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (selectedTools.length === 0) {
@@ -162,15 +190,15 @@ export default function EditSubscriptionPlanPage() {
         title: "No tools selected",
         description: "Please select at least one tool for this plan.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // In a real app, you would update the plan in your database
       // await updateSubscriptionPlan(params.id, {
@@ -186,20 +214,21 @@ export default function EditSubscriptionPlanPage() {
       toast({
         title: "Plan updated",
         description: "The subscription plan has been updated successfully.",
-      })
+      });
 
-      router.push("/subscription-management")
+      router.push("/subscription-management");
     } catch (error) {
-      console.error("Failed to update plan:", error)
+      console.error("Failed to update plan:", error);
       toast({
         title: "Error",
-        description: "Failed to update the subscription plan. Please try again.",
+        description:
+          "Failed to update the subscription plan. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -209,7 +238,7 @@ export default function EditSubscriptionPlanPage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -231,7 +260,9 @@ export default function EditSubscriptionPlanPage() {
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-teal to-brand-blue">
               Edit Subscription Plan
             </h1>
-            <p className="text-muted-foreground mt-1">Modify an existing subscription plan</p>
+            <p className="text-muted-foreground mt-1">
+              Modify an existing subscription plan
+            </p>
           </div>
         </div>
 
@@ -243,7 +274,9 @@ export default function EditSubscriptionPlanPage() {
                   <Package className="h-5 w-5 text-brand-teal" />
                   Plan Details
                 </CardTitle>
-                <CardDescription>Basic information about the subscription plan</CardDescription>
+                <CardDescription>
+                  Basic information about the subscription plan
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -286,7 +319,10 @@ export default function EditSubscriptionPlanPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="plan-price" className="flex items-center gap-1">
+                    <Label
+                      htmlFor="plan-price"
+                      className="flex items-center gap-1"
+                    >
                       <DollarSign className="h-4 w-4 text-brand-teal" />
                       Price
                     </Label>
@@ -302,11 +338,17 @@ export default function EditSubscriptionPlanPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="billing-cycle" className="flex items-center gap-1">
+                    <Label
+                      htmlFor="billing-cycle"
+                      className="flex items-center gap-1"
+                    >
                       <Calendar className="h-4 w-4 text-brand-teal" />
                       Billing Cycle
                     </Label>
-                    <Select value={billingCycle} onValueChange={setBillingCycle}>
+                    <Select
+                      value={billingCycle}
+                      onValueChange={setBillingCycle}
+                    >
                       <SelectTrigger id="billing-cycle">
                         <SelectValue placeholder="Select billing cycle" />
                       </SelectTrigger>
@@ -323,7 +365,11 @@ export default function EditSubscriptionPlanPage() {
                   <Label htmlFor="plan-active" className="cursor-pointer">
                     Plan Active
                   </Label>
-                  <Switch id="plan-active" checked={isActive} onCheckedChange={setIsActive} />
+                  <Switch
+                    id="plan-active"
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -336,7 +382,9 @@ export default function EditSubscriptionPlanPage() {
                   <Package className="h-5 w-5 text-brand-teal" />
                   Included Tools
                 </CardTitle>
-                <CardDescription>Select which tools are included in this subscription plan</CardDescription>
+                <CardDescription>
+                  Select which tools are included in this subscription plan
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -357,11 +405,15 @@ export default function EditSubscriptionPlanPage() {
                               : "bg-muted"
                           }`}
                         >
-                          {tool.icon || <Package className="h-5 w-5 text-brand-teal" />}
+                          {tool.icon || (
+                            <Package className="h-5 w-5 text-brand-teal" />
+                          )}
                         </div>
                         <div>
                           <h3 className="font-medium">{tool.name}</h3>
-                          <p className="text-sm text-muted-foreground">{tool.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tool.description}
+                          </p>
                         </div>
                       </div>
                       <Switch
@@ -373,7 +425,10 @@ export default function EditSubscriptionPlanPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={() => router.push("/subscription-management")}>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/subscription-management")}
+                >
                   Cancel
                 </Button>
                 <Button
@@ -381,7 +436,11 @@ export default function EditSubscriptionPlanPage() {
                   className="gap-1 bg-gradient-to-r from-brand-teal to-brand-blue hover:from-brand-teal/90 hover:to-brand-blue/90"
                   disabled={isSaving}
                 >
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                   Save Changes
                 </Button>
               </CardFooter>
@@ -390,6 +449,5 @@ export default function EditSubscriptionPlanPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-

@@ -13,10 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getUserTools } from "@/lib/data";
+import { getAllTools } from "@/lib/data";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { getCurrentUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 import {
   ArrowRight,
   MessageSquare,
@@ -46,30 +46,33 @@ export default function DashboardPage() {
     tokensUsed: "1.2M",
     timesSaved: "18h",
   });
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        const userData = await getCurrentUser();
-        if (!userData) {
-          router.push("/login");
-          return;
-        }
+      if (status === "loading") return;
 
-        setUser(userData);
-        const userTools = await getUserTools(userData.id);
-        setTools(userTools);
-      } catch (error) {
-        console.error("Failed to load user data:", error);
+      if (status === "unauthenticated") {
+        signIn();
+        return;
+      }
+
+      try {
+        const tools = await getAllTools();
+        setTools(tools);
+
+        setUser(session?.user);
+      } catch (err) {
+        console.error("Failed to fetch tools", err);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, [router]);
+  }, [status, session]);
 
-  if (isLoading || !user) {
+  if (isLoading || !session?.user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-pulse flex flex-col items-center">
@@ -106,7 +109,7 @@ export default function DashboardPage() {
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">
                   Welcome back,{" "}
                   <span className="text-brand-teal">
-                    {user.name.split(" ")[0]}
+                    {user?.name?.split(" ")[0] ?? "Guest"}
                   </span>
                 </h1>
                 <p className="text-muted-foreground mb-6">

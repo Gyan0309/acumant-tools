@@ -199,8 +199,8 @@ export function Researcher() {
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                <Brain className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 gradient-text">
+                <Brain className="h-8 w-8 text-primary " />
                 Deep Research
               </h1>
               <p className="text-muted-foreground mt-1">
@@ -256,9 +256,9 @@ export function Researcher() {
                       <SelectItem value="resource_report">
                         Resource List
                       </SelectItem>
-                      <SelectItem value="outline_report">
+                      {/* <SelectItem value="outline_report">
                         Outline Only
-                      </SelectItem>
+                      </SelectItem> */}
                       <SelectItem value="custom_report">
                         Custom Report
                       </SelectItem>

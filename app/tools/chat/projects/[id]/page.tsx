@@ -1,40 +1,45 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { ProjectView } from "@/components/projects/project-view"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { getCurrentUser } from "@/lib/auth"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { use } from "react"
+import { useEffect } from "react";
+import { ProjectView } from "@/components/projects/project-view";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { use } from "react";
+import { useSession, signIn } from "next-auth/react";
 
-export default function ProjectDetailPage({ params }: { params: Promise< { id: string }> }) {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export default function ProjectDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   // Unwrap params using React.use() to fix the deprecation warning
-  const {id} = use(params)
+  const { id } = use(params);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
-        setUser(userData)
+        setUser(session?.user);
       } catch (error) {
-        console.error("Failed to load user data:", error)
+        console.error("Failed to load user data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [router])
+    loadData();
+  }, [session, status]);
 
   if (isLoading || !user) {
     return (
@@ -44,7 +49,7 @@ export default function ProjectDetailPage({ params }: { params: Promise< { id: s
           <div className="h-4 w-48 bg-muted rounded"></div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -55,6 +60,5 @@ export default function ProjectDetailPage({ params }: { params: Promise< { id: s
         <ProjectView projectId={id} />
       </main>
     </div>
-  )
+  );
 }
-

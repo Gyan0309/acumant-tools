@@ -1,80 +1,105 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getOrganizationById, getCurrentUser, isSuperAdmin, getAllTools, getOrganizationTools } from "@/lib/data"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { useRouter, useParams } from "next/navigation"
-import { Building, Loader2, ArrowLeft, Save, CreditCard } from "lucide-react"
-import Image from "next/image"
-import { useToast } from "@/hooks/use-toast"
-import { Separator } from "@/components/ui/separator"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  getOrganizationById,
+  isSuperAdmin,
+  getAllTools,
+  getOrganizationTools,
+} from "@/lib/data";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useRouter, useParams } from "next/navigation";
+import { Building, Loader2, ArrowLeft, Save, CreditCard } from "lucide-react";
+import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { useSession, signIn } from "next-auth/react";
 
 export default function ManageSubscriptionPage() {
-  const router = useRouter()
-  const params = useParams()
-  const { toast } = useToast()
-  const [user, setUser] = useState<any>(null)
-  const [organization, setOrganization] = useState<any>(null)
-  const [tools, setTools] = useState<any[]>([])
-  const [selectedTools, setSelectedTools] = useState<string[]>([])
-  const [subscription, setSubscription] = useState<string>("standard")
-  const [status, setStatus] = useState<string>("active")
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+  const router = useRouter();
+  const params = useParams();
+  const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  const [organization, setOrganization] = useState<any>(null);
+  const [tools, setTools] = useState<any[]>([]);
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+  const [subscription, setSubscription] = useState<string>("standard");
+  const [orgStatus, setOrgStatus] = useState<string>("active");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
         // Only super admins can access this page
-        if (!isSuperAdmin(userData)) {
-          router.push("/dashboard")
-          return
+        if (!isSuperAdmin(session?.user)) {
+          router.push("/dashboard");
+          return;
         }
 
-        setUser(userData)
+        setUser(session?.user);
 
-        const orgId = params.id as string
-        const orgData = await getOrganizationById(orgId)
-        setOrganization(orgData)
-        setSubscription(orgData.subscription || "standard")
-        setStatus(orgData.status || "active")
+        const orgId = params.id as string;
+        const orgData = await getOrganizationById(orgId);
+        setOrganization(orgData);
+        setSubscription(orgData.subscription || "standard");
+        setOrgStatus(orgData.status || "active");
 
-        const toolsData = await getAllTools()
-        setTools(toolsData)
+        const toolsData = await getAllTools();
+        setTools(toolsData);
 
-        const orgToolsData = await getOrganizationTools(orgId)
-        setSelectedTools(orgToolsData.map((tool) => tool.id))
+        const orgToolsData = await getOrganizationTools(orgId);
+        setSelectedTools(orgToolsData.map((tool) => tool.id));
       } catch (error) {
-        console.error("Failed to load data:", error)
+        console.error("Failed to load data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [router, params.id])
+    loadData();
+  }, [session, status, router, params.id]);
 
   const handleToolToggle = (toolId: string) => {
-    setSelectedTools((prev) => (prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]))
-  }
+    setSelectedTools((prev) =>
+      prev.includes(toolId)
+        ? prev.filter((id) => id !== toolId)
+        : [...prev, toolId]
+    );
+  };
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // In a real app, you would save the changes to the database
       // await updateOrganizationSubscription(organization.id, {
@@ -86,20 +111,20 @@ export default function ManageSubscriptionPage() {
       toast({
         title: "Changes saved",
         description: "The subscription has been updated successfully.",
-      })
+      });
 
-      router.push("/subscription-management")
+      router.push("/subscription-management");
     } catch (error) {
-      console.error("Failed to save changes:", error)
+      console.error("Failed to save changes:", error);
       toast({
         title: "Error",
         description: "Failed to save changes. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -109,7 +134,7 @@ export default function ManageSubscriptionPage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -131,7 +156,9 @@ export default function ManageSubscriptionPage() {
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-teal to-brand-blue">
               Manage Subscription
             </h1>
-            <p className="text-muted-foreground mt-1">Configure subscription details and tool access</p>
+            <p className="text-muted-foreground mt-1">
+              Configure subscription details and tool access
+            </p>
           </div>
         </div>
 
@@ -161,7 +188,9 @@ export default function ManageSubscriptionPage() {
                     )}
                   </div>
                   <h3 className="text-xl font-medium">{organization.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{organization.email || "No email provided"}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {organization.email || "No email provided"}
+                  </p>
 
                   {organization.id === "acumant" && (
                     <Badge variant="outline" className="mt-3">
@@ -174,8 +203,13 @@ export default function ManageSubscriptionPage() {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Subscription Plan</label>
-                    <Select value={subscription} onValueChange={setSubscription}>
+                    <label className="text-sm font-medium">
+                      Subscription Plan
+                    </label>
+                    <Select
+                      value={subscription}
+                      onValueChange={setSubscription}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a plan" />
                       </SelectTrigger>
@@ -190,7 +224,7 @@ export default function ManageSubscriptionPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Status</label>
-                    <Select value={status} onValueChange={setStatus}>
+                    <Select value={orgStatus} onValueChange={setOrgStatus}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
@@ -213,7 +247,9 @@ export default function ManageSubscriptionPage() {
                   <CreditCard className="h-5 w-5 text-brand-teal" />
                   Tool Access
                 </CardTitle>
-                <CardDescription>Configure which tools this organization can access</CardDescription>
+                <CardDescription>
+                  Configure which tools this organization can access
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -224,11 +260,15 @@ export default function ManageSubscriptionPage() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-md bg-gradient-to-br from-brand-teal/10 to-brand-blue/10 dark:from-brand-teal/20 dark:to-brand-blue/20">
-                          {tool.icon || <Building className="h-5 w-5 text-brand-teal" />}
+                          {tool.icon || (
+                            <Building className="h-5 w-5 text-brand-teal" />
+                          )}
                         </div>
                         <div>
                           <h3 className="font-medium">{tool.name}</h3>
-                          <p className="text-sm text-muted-foreground">{tool.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {tool.description}
+                          </p>
                         </div>
                       </div>
                       <Switch
@@ -252,7 +292,11 @@ export default function ManageSubscriptionPage() {
                   className="gap-1 bg-gradient-to-r from-brand-teal to-brand-blue hover:from-brand-teal/90 hover:to-brand-blue/90 transition-all hover:bg-gradient-to-r hover:from-brand-teal/10 hover:to-brand-blue/10 hover:text-brand-teal hover:border-brand-teal/30"
                   disabled={isSaving}
                 >
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
                   Save Changes
                 </Button>
               </CardFooter>
@@ -261,6 +305,5 @@ export default function ManageSubscriptionPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-

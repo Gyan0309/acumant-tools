@@ -100,10 +100,13 @@ export function EnhancedChatInterface() {
             params: { company_id: company_id },
           }
         );
+        console.log(response.data);
         setProjects(response.data.results);
 
         if (response.data.results.length > 0) {
-          setSelectedProject(response.data.results[0].ProjectId);
+          const firstProject = response.data.results[0];
+          setSelectedProject(firstProject.ProjectId);
+          setSelectedProjectName(firstProject.ProjectName);
         }
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -203,11 +206,7 @@ export function EnhancedChatInterface() {
     }
   }, [chatMode, selectedModel, messages.length]);
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
+ 
   // Update provider when model changes
   useEffect(() => {
     const model = aiModels.find((m) => m.id === selectedModel);
@@ -378,35 +377,7 @@ export function EnhancedChatInterface() {
     <div className="flex flex-col h-[calc(100vh-180px)] border rounded-md overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
       {/* Header */}
       <div className="border-b p-4 flex flex-col gap-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <h3 className="text-sm font-medium flex items-center">
-              <MessageSquare className="h-4 w-4 mr-2 text-brand-teal" />
-              CHATBOT
-            </h3>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors"
-                    onClick={handleReset}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span className="text-xs">Reset</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Clear chat history</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -434,114 +405,149 @@ export function EnhancedChatInterface() {
           </div>
 
           {chatMode === "project" ? (
-            <div className="flex items-center gap-2">
-              <div className="w-64">
-                <Select
-                  value={selectedProject}
-                  onValueChange={(projectId) => {
-                    setSelectedProject(projectId);
-                    handleProjectSelect(projectId);
-                  }}
+  <div className="flex items-center gap-2">
+    <div className="w-64">
+      <Select
+        value={selectedProject}
+        onValueChange={(projectId) => {
+          setSelectedProject(projectId);
+          handleProjectSelect(projectId);
+        }}
+      >
+        <SelectTrigger className="h-9 text-sm">
+          <div className="flex items-center gap-2">
+            <Database className="h-3.5 w-3.5 text-muted-foreground" />
+            <SelectValue placeholder="Select a project" />
+          </div>
+        </SelectTrigger>
+        <SelectContent>
+          {projects.map((project) => (
+            <SelectItem
+              key={project.ProjectId}
+              value={project.ProjectId}
+              className="text-sm hover:bg-brand-teal/10 hover:text-brand-teal focus:bg-brand-teal/10 focus:text-brand-teal"
+            >
+              {project.ProjectName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1 hover:bg-brand-teal/10 hover:text-brand-teal hover:border-brand-teal/30 transition-colors"
+            onClick={handleManageProjects}
+          >
+            <FolderPlus className="h-3.5 w-3.5" />
+            <span className="text-xs">Manage</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Manage your projects</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+
+    <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors"
+              onClick={handleReset}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Clear chat history</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  </div>
+) : (
+  <div className="flex items-center gap-2">
+    <div className="w-64">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full h-9 justify-between"
+          >
+            <div className="flex items-center gap-2 text-sm">
+              <Bot className="h-3.5 w-3.5 text-muted-foreground" />
+              {aiModels.find((m) => m.id === selectedModel)?.name || "Select model"}
+            </div>
+            <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-64">
+          <div className="p-2">
+            <h4 className="text-xs font-semibold text-muted-foreground mb-2">OpenAI</h4>
+            {aiModels
+              .filter((model) => model.provider === "openai")
+              .map((model) => (
+                <DropdownMenuItem
+                  key={model.id}
+                  className={`text-sm rounded-md ${selectedModel === model.id
+                    ? "bg-brand-teal/10 text-brand-teal"
+                    : ""}`}
+                  onClick={() => setSelectedModel(model.id)}
                 >
-                  <SelectTrigger className="h-9 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-3.5 w-3.5 text-muted-foreground" />
-                      <SelectValue placeholder="Select a project" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((project) => (
-                      <SelectItem
-                        key={project.ProjectId}
-                        value={project.ProjectId}
-                        className="text-sm hover:bg-brand-teal/10 hover:text-brand-teal focus:bg-brand-teal/10 focus:text-brand-teal"
-                      >
-                        {project.ProjectName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 gap-1 hover:bg-brand-teal/10 hover:text-brand-teal hover:border-brand-teal/30 transition-colors"
-                      onClick={handleManageProjects}
-                    >
-                      <FolderPlus className="h-3.5 w-3.5" />
-                      <span className="text-xs">Manage</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Manage your projects</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          ) : (
-            <div className="w-64">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full h-9 justify-between"
-                  >
-                    <div className="flex items-center gap-2 text-sm">
-                      <Bot className="h-3.5 w-3.5 text-muted-foreground" />
-                      {aiModels.find((m) => m.id === selectedModel)?.name ||
-                        "Select model"}
-                    </div>
-                    <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64">
-                  <div className="p-2">
-                    <h4 className="text-xs font-semibold text-muted-foreground mb-2">
-                      OpenAI
-                    </h4>
-                    {aiModels
-                      .filter((model) => model.provider === "openai")
-                      .map((model) => (
-                        <DropdownMenuItem
-                          key={model.id}
-                          className={`text-sm rounded-md ${
-                            selectedModel === model.id
-                              ? "bg-brand-teal/10 text-brand-teal"
-                              : ""
-                          }`}
-                          onClick={() => setSelectedModel(model.id)}
-                        >
-                          {model.name}
-                        </DropdownMenuItem>
-                      ))}
-                  </div>
-                  <div className="p-2 border-t">
-                    <h4 className="text-xs font-semibold text-muted-foreground mb-2">
-                      Anthropic
-                    </h4>
-                    {aiModels
-                      .filter((model) => model.provider === "anthropic")
-                      .map((model) => (
-                        <DropdownMenuItem
-                          key={model.id}
-                          className={`text-sm rounded-md ${
-                            selectedModel === model.id
-                              ? "bg-brand-teal/10 text-brand-teal"
-                              : ""
-                          }`}
-                          onClick={() => setSelectedModel(model.id)}
-                        >
-                          {model.name}
-                        </DropdownMenuItem>
-                      ))}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
+                  {model.name}
+                </DropdownMenuItem>
+              ))}
+          </div>
+          <div className="p-2 border-t">
+            <h4 className="text-xs font-semibold text-muted-foreground mb-2">Anthropic</h4>
+            {aiModels
+              .filter((model) => model.provider === "anthropic")
+              .map((model) => (
+                <DropdownMenuItem
+                  key={model.id}
+                  className={`text-sm rounded-md ${selectedModel === model.id
+                    ? "bg-brand-teal/10 text-brand-teal"
+                    : ""}`}
+                  onClick={() => setSelectedModel(model.id)}
+                >
+                  {model.name}
+                </DropdownMenuItem>
+              ))}
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors"
+              onClick={handleReset}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Clear chat history</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
 

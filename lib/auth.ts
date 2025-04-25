@@ -1,6 +1,6 @@
-// Mock authentication functions - in a real app, these would use NextAuth or similar
 
-// Mock user data
+import { getServerSession } from "next-auth"
+import { authOptions } from "./auth-options"
 const users = [
   {
     id: "1",
@@ -25,29 +25,15 @@ const users = [
 
 ]
 
-// Mock session
-let currentUser: (typeof users)[0] | null = users[0] // Default to admin for demo
-
 export async function login(email: string, password: string) {
   // In a real app, this would verify credentials and create a session
   const user = users.find((u) => u.email === email && u.password === password)
-
-  if (!user) {
-    throw new Error("Invalid credentials")
-  }
-
-  currentUser = user
-  return user
 }
 
-export async function logout() {
-  // In a real app, this would destroy the session
-  currentUser = null
-  return true
-}
+
+
 
 export async function getCurrentUser() {
-  // In a real app, this would check the session
-  return currentUser
+  const session = await getServerSession(authOptions)
+  return session?.user ?? null
 }
-

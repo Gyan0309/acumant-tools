@@ -62,16 +62,16 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       const response = await api.get(
         `/codecraft/company_id/${company_id}/projects/${projectId}/files`
       );
-  
+
       const data = response.data;
-  
+
       const flattenedFiles = (data.files || []).map((file: any) => ({
         id: file.DocumentId,
         name: file.name,
         size: String(file.size),
         uploadedAt: new Date(file.CreatedOn),
       }));
-  
+
       const formattedProject: ProjectDetails = {
         id: data.ProjectId,
         name: data.ProjectName,
@@ -80,7 +80,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         createdAt: new Date(flattenedFiles?.[0]?.uploadedAt || new Date()),
         files: flattenedFiles,
       };
-  
+
       setProject(formattedProject);
     } catch (error) {
       console.error("Error fetching project:", error);
@@ -97,8 +97,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   useEffect(() => {
     fetchProject();
   }, [projectId]);
-  
-  
+
   const handleFilesChange = async (files: UploadedFile[]) => {
     if (!files.length) return;
 
@@ -143,7 +142,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     if (!fileToDelete || !project) return;
 
     try {
-      
       const company_Id = "Acumant";
       const [docName, docId] = fileToDelete.split(":::");
       const encodedProjectName = encodeURIComponent(project.name);
@@ -166,7 +164,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       });
     } finally {
       setFileToDelete(null);
-      
     }
   };
 
@@ -278,8 +275,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {project.files.map((file) => (
-                    <TableRow key={file.id}>
+                  {project.files.map((file, index) => (
+                    <TableRow key={file.id || `file-${index}`}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <FileIcon className="h-4 w-4 text-primary" />
@@ -288,9 +285,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {file.size} 
-                      </TableCell>
+                      <TableCell>{file.size}</TableCell>
                       <TableCell>
                         {file.uploadedAt.toLocaleDateString()}
                       </TableCell>
@@ -308,8 +303,9 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => setFileToDelete(`${file.name}:::${file.id}`)}
-
+                            onClick={() =>
+                              setFileToDelete(`${file.name}:::${file.id}`)
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
@@ -335,7 +331,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the
               file from the project.
-
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

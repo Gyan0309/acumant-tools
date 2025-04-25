@@ -1,40 +1,41 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { ProjectForm } from "@/components/projects/project-form"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { getCurrentUser } from "@/lib/auth"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect } from "react";
+import { ProjectForm } from "@/components/projects/project-form";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 
 export default function CreateProjectPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
-        setUser(userData)
+        setUser(session?.user);
       } catch (error) {
-        console.error("Failed to load user data:", error)
+        console.error("Failed to load user data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [router])
+    loadData();
+  }, [session, status]);
 
   const handleCancel = () => {
-    router.push("/tools/chat/projects")
-  }
+    router.push("/tools/chat/projects");
+  };
 
   if (isLoading || !user) {
     return (
@@ -44,7 +45,7 @@ export default function CreateProjectPage() {
           <div className="h-4 w-48 bg-muted rounded"></div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -55,6 +56,5 @@ export default function CreateProjectPage() {
         <ProjectForm onCancel={handleCancel} />
       </main>
     </div>
-  )
+  );
 }
-

@@ -1,45 +1,63 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { getUserTools } from "@/lib/data"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { getCurrentUser } from "@/lib/auth"
-import { useEffect, useState } from "react"
-import { ArrowRight, MessageSquare, Database, Search, Sparkles, Bot, Zap, Shield, Users, BarChart3 } from "lucide-react"
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { getAllTools } from "@/lib/data";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { useEffect, useState } from "react";
+import {
+  ArrowRight,
+  MessageSquare,
+  Database,
+  Search,
+  Sparkles,
+  Bot,
+  Zap,
+  Shield,
+  Users,
+  BarChart3,
+} from "lucide-react";
+import { useSession, signIn } from "next-auth/react";
 // Let's simplify the home page structure to avoid potential React fiber issues
 export default function DashboardPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [tools, setTools] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [tools, setTools] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
   useEffect(() => {
     const loadData = async () => {
       try {
-        const userData = await getCurrentUser()
-        if (!userData) {
-          router.push("/login")
-          return
+        if (status === "loading") return;
+
+        if (status === "unauthenticated") {
+          signIn();
+          return;
         }
 
-        setUser(userData)
-        const userTools = await getUserTools(userData.id)
-        setTools(userTools)
+        setUser(sessionStorage?.user);
+        const userTools = await getAllTools();
+        setTools(userTools);
       } catch (error) {
-        console.error("Failed to load user data:", error)
+        console.error("Failed to load user data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [router])
+    loadData();
+  }, [session, status]);
 
   if (isLoading || !user) {
     return (
@@ -49,14 +67,14 @@ export default function DashboardPage() {
           <div className="h-4 w-48 bg-muted rounded"></div>
         </div>
       </div>
-    )
+    );
   }
 
   const toolIcons: Record<string, React.ReactNode> = {
     chat: <MessageSquare className="h-6 w-6" />,
     "data-formulator": <Database className="h-6 w-6" />,
     "deep-research": <Search className="h-6 w-6" />,
-  }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fc] dark:bg-[#0d1117]">
@@ -73,7 +91,8 @@ export default function DashboardPage() {
               </span>
             </h1>
             <p className="text-[#475569] dark:text-[#94a3b8] max-w-2xl mx-auto">
-              Access your enterprise-grade AI tools designed to enhance productivity and drive innovation
+              Access your enterprise-grade AI tools designed to enhance
+              productivity and drive innovation
             </p>
           </div>
 
@@ -92,7 +111,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div>
-                      <CardTitle className="text-xl text-[#1e293b] dark:text-white">{tool.name}</CardTitle>
+                      <CardTitle className="text-xl text-[#1e293b] dark:text-white">
+                        {tool.name}
+                      </CardTitle>
                       <CardDescription className="text-sm text-[#64748b] dark:text-[#94a3b8]">
                         {tool.description}
                       </CardDescription>
@@ -113,13 +134,17 @@ export default function DashboardPage() {
                       <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-teal/20 to-brand-blue/20 dark:from-brand-teal/30 dark:to-brand-blue/30 flex items-center justify-center">
                         <Zap className="h-3.5 w-3.5 text-brand-teal" />
                       </div>
-                      <span className="text-sm text-[#475569] dark:text-[#cbd5e1]">Seamless workflow integration</span>
+                      <span className="text-sm text-[#475569] dark:text-[#cbd5e1]">
+                        Seamless workflow integration
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-teal/20 to-brand-blue/20 dark:from-brand-teal/30 dark:to-brand-blue/30 flex items-center justify-center">
                         <Zap className="h-3.5 w-3.5 text-brand-teal" />
                       </div>
-                      <span className="text-sm text-[#475569] dark:text-[#cbd5e1]">Enterprise-grade security</span>
+                      <span className="text-sm text-[#475569] dark:text-[#cbd5e1]">
+                        Enterprise-grade security
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -148,7 +173,9 @@ export default function DashboardPage() {
                   Platform Features
                 </span>
               </div>
-              <h2 className="text-2xl font-bold mb-4 text-[#1e293b] dark:text-white">Enterprise-Ready Platform</h2>
+              <h2 className="text-2xl font-bold mb-4 text-[#1e293b] dark:text-white">
+                Enterprise-Ready Platform
+              </h2>
               <p className="text-[#475569] dark:text-[#94a3b8] max-w-2xl mx-auto">
                 Built with security, scalability, and performance at its core
               </p>
@@ -158,27 +185,32 @@ export default function DashboardPage() {
               {[
                 {
                   title: "Enterprise Security",
-                  description: "Bank-grade security with end-to-end encryption and compliance with industry standards",
+                  description:
+                    "Bank-grade security with end-to-end encryption and compliance with industry standards",
                   icon: <Shield className="h-5 w-5" />,
                 },
                 {
                   title: "Seamless Integration",
-                  description: "Connect with your existing tools and workflows through our comprehensive API",
+                  description:
+                    "Connect with your existing tools and workflows through our comprehensive API",
                   icon: <Zap className="h-5 w-5" />,
                 },
                 {
                   title: "Advanced Analytics",
-                  description: "Gain insights into usage patterns and performance metrics across your organization",
+                  description:
+                    "Gain insights into usage patterns and performance metrics across your organization",
                   icon: <BarChart3 className="h-5 w-5" />,
                 },
                 {
                   title: "Customizable Workflows",
-                  description: "Tailor the platform to your specific needs with customizable workflows and settings",
+                  description:
+                    "Tailor the platform to your specific needs with customizable workflows and settings",
                   icon: <Sparkles className="h-5 w-5" />,
                 },
                 {
                   title: "Team Collaboration",
-                  description: "Work together seamlessly with shared projects, comments, and real-time updates",
+                  description:
+                    "Work together seamlessly with shared projects, comments, and real-time updates",
                   icon: <Users className="h-5 w-5" />,
                 },
                 {
@@ -199,8 +231,12 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-base font-medium mb-1 text-[#1e293b] dark:text-white">{feature.title}</h3>
-                      <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">{feature.description}</p>
+                      <h3 className="text-base font-medium mb-1 text-[#1e293b] dark:text-white">
+                        {feature.title}
+                      </h3>
+                      <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">
+                        {feature.description}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -210,6 +246,5 @@ export default function DashboardPage() {
         </section>
       </main>
     </div>
-  )
+  );
 }
-

@@ -1,55 +1,58 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Bell, LogOut, Settings, User } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { signOut } from "next-auth/react";
 
 interface DashboardHeaderProps {
   user: {
-    id: string
-    name: string
-    email: string
-    role: string
-    avatar?: string
-  }
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatar?: string;
+  };
 }
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false)
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
-    // In a real app, this would call a logout function
-    router.push("/login")
-  }
+    signOut({ callbackUrl: "/login" });
+  };
 
-  const isAdmin = user?.role === "admin"
+  const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
   const initials = user?.name
     ? user.name
         .split(" ")
         .map((n) => n[0])
         .join("")
-    : "U"
+    : "U";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -90,8 +93,12 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-[#1e293b] border border-brand-teal/10 overflow-hidden z-50">
                 <div className="p-2 bg-gradient-to-r from-brand-teal/5 to-brand-blue/5">
                   <div className="px-4 py-2">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
 
@@ -120,8 +127,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 <div className="py-1 border-t border-brand-teal/10">
                   <button
                     onClick={() => {
-                      setIsDropdownOpen(false)
-                      handleLogout()
+                      setIsDropdownOpen(false);
+                      handleLogout();
                     }}
                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gradient-to-r hover:from-brand-teal/10 hover:to-brand-blue/10 cursor-pointer"
                   >
@@ -135,6 +142,5 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }
-

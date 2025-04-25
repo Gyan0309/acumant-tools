@@ -1,51 +1,71 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/components/ui/use-toast"
-import { login } from "@/lib/auth"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Bot, Database, MessageSquare, Search } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
-import Image from "next/image"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { login } from "@/lib/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Bot, Database, MessageSquare, Search } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import { useSession, signIn } from "next-auth/react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      await login(email, password)
-      router.push("/dashboard")
+      await login(email, password);
+      router.push("/dashboard");
     } catch (error) {
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-12 w-12 bg-primary/20 rounded-full mb-4"></div>
+          <div className="h-4 w-48 bg-muted rounded"></div>
+        </div>
+      </div>
+    );
   }
 
   const handleMicrosoftLogin = () => {
-    setIsLoading(true)
-    // In a real app, this would redirect to Microsoft OAuth
-    setTimeout(() => {
-      router.push("/dashboard")
-    }, 1000)
-  }
+    signIn("azure-ad");
+  };
 
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-[#f8f9fc] dark:bg-[#0d1117]">
@@ -75,7 +95,8 @@ export default function LoginPage() {
             </span>
           </h1>
           <p className="text-lg text-[#475569] dark:text-[#94a3b8] max-w-xl">
-            Transform your workflow with AI-powered tools designed for productivity, insight, and innovation.
+            Transform your workflow with AI-powered tools designed for
+            productivity, insight, and innovation.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
@@ -98,7 +119,9 @@ export default function LoginPage() {
                 </div>
                 <h3 className="font-medium">Data Formulator</h3>
               </div>
-              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Transform and analyze data with AI</p>
+              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                Transform and analyze data with AI
+              </p>
             </div>
 
             <div className="bg-white dark:bg-[#1e293b] p-3 rounded-xl shadow-sm border border-[#e2e8f0] dark:border-[#334155]">
@@ -108,7 +131,9 @@ export default function LoginPage() {
                 </div>
                 <h3 className="font-medium">Deep Research</h3>
               </div>
-              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Conduct in-depth research on any topic</p>
+              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                Conduct in-depth research on any topic
+              </p>
             </div>
 
             <div className="bg-white dark:bg-[#1e293b] p-3 rounded-xl shadow-sm border border-[#e2e8f0] dark:border-[#334155]">
@@ -118,7 +143,9 @@ export default function LoginPage() {
                 </div>
                 <h3 className="font-medium">Enterprise Features</h3>
               </div>
-              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Security and collaboration for teams</p>
+              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                Security and collaboration for teams
+              </p>
             </div>
           </div>
         </div>
@@ -129,7 +156,9 @@ export default function LoginPage() {
         <Card className="w-full max-w-md border-0 shadow-lg">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -148,7 +177,11 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Button variant="link" className="px-0 font-normal h-auto" type="button">
+                  <Button
+                    variant="link"
+                    className="px-0 font-normal h-auto"
+                    type="button"
+                  >
                     Forgot password?
                   </Button>
                 </div>
@@ -192,7 +225,12 @@ export default function LoginPage() {
               className="w-full bg-[#2F2F2F] hover:bg-[#1E1E1E] text-white flex items-center justify-center gap-2 h-10"
               disabled={isLoading}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 23 23">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 23 23"
+              >
                 <path fill="#f3f3f3" d="M0 0h10.931v10.931H0z" />
                 <path fill="#f35325" d="M11.954 0h10.931v10.931H11.954z" />
                 <path fill="#81bc06" d="M0 11.954h10.931v10.931H0z" />
@@ -204,6 +242,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-
